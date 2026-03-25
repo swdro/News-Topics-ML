@@ -1,21 +1,16 @@
 """
 transform.py — Text preprocessing and TF-IDF feature engineering.
 
-Why preprocess before TF-IDF?
-- Raw text contains noise: punctuation, numbers, stopwords ("the", "and", "is").
-  These inflate the vocabulary and dilute the signal words that actually
-  distinguish topics from each other.
-- Lowercasing ensures "Policy" and "policy" are treated as the same word.
-- Removing stopwords (via NLTK's 179-word list) cuts vocabulary size with no
-  loss of topic signal.
+Raw text contains noise: punctuation, numbers, stopwords ("the", "and", "is")
+that inflate the vocabulary and dilute the signal words that actually distinguish
+topics. Lowercasing ensures "Policy" and "policy" are the same token. Removing
+stopwords (via NLTK's 179-word list) cuts vocabulary size with no loss of topic
+signal.
 
-Why TF-IDF?
-- ML models need numbers, not strings. TF-IDF converts each article into a
-  vector of word importance scores.
-- TF  (Term Frequency):     how often a word appears in THIS article.
-- IDF (Inverse Doc Freq):   penalizes words common across ALL articles.
-- Result: words like "federal" score high in political articles; "the" scores
-  near zero everywhere. This is exactly what a topic classifier needs.
+ML models need numbers, not strings. TF-IDF converts each article into a vector
+of word importance scores — TF is how often a word appears in this article, IDF
+penalizes words common across all articles. Words like "federal" score high in
+political articles; "the" scores near zero everywhere.
 """
 
 import re
@@ -63,15 +58,10 @@ def load_articles() -> pd.DataFrame:
 
 def preprocess_text(text: str) -> str:
     """
-    Clean a single article's text.
-
-    Steps:
-    1. Lowercase          — "Policy" and "policy" become the same token.
-    2. Remove URLs        — they contribute noise, not topic signal.
-    3. Remove non-alpha   — strip punctuation, numbers, special chars.
-    4. Collapse whitespace — multiple spaces become one.
-    5. Remove stopwords   — NLTK's 179 common English function words.
-    6. Drop short tokens  — single characters add noise.
+    Clean a single article's text: lowercase ("Policy" and "policy" become the
+    same token), remove URLs (noise, not topic signal), strip punctuation/numbers/
+    special chars, collapse whitespace, remove NLTK's 179 English stopwords, and
+    drop single-character tokens.
     """
     text = text.lower()
     text = re.sub(r"http\S+|www\S+", " ", text)

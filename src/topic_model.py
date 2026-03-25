@@ -1,24 +1,18 @@
 """
 topic_model.py — Unsupervised topic discovery using BERTopic.
 
-How BERTopic works:
-1. EMBED:   Each article is converted to a dense semantic vector using a
-            sentence-transformer model. Unlike TF-IDF, these vectors capture
-            meaning — "car" and "automobile" land near each other.
-2. REDUCE:  UMAP compresses the high-dimensional embedding space down to
-            5 dimensions, preserving local structure (similar articles stay close).
-3. CLUSTER: HDBSCAN finds dense regions in the reduced space — these are topics.
-4. LABEL:   c-TF-IDF extracts the most representative keywords per cluster.
+BERTopic pipeline: each article gets converted to a dense semantic vector via a
+sentence-transformer (unlike TF-IDF, these capture meaning — "car" and
+"automobile" land near each other). UMAP compresses the high-dimensional space
+down to 5 dimensions preserving local structure. HDBSCAN finds dense regions —
+those are the topics. c-TF-IDF then extracts representative keywords per cluster.
 
-Why fit on a sample?
-  Embedding 141k articles end-to-end takes 30-60+ minutes even with GPU.
-  The standard production pattern is: fit BERTopic on a representative sample
-  (~20k articles), then use .transform() to assign topics to the full dataset.
-  This is fast because .transform() skips UMAP/HDBSCAN re-fitting.
+Embedding 141k articles end-to-end takes 30-60+ minutes even with GPU. So we fit
+BERTopic on a representative 20k sample, then call .transform() on the full
+dataset. .transform() skips UMAP/HDBSCAN re-fitting so it's fast.
 
-Apple Silicon note:
-  sentence-transformers will automatically use MPS (Metal Performance Shaders)
-  on Apple Silicon Macs when torch detects it — no extra config needed.
+sentence-transformers automatically uses MPS on Apple Silicon when torch detects
+it — no extra config needed.
 """
 
 import pickle
@@ -79,17 +73,13 @@ def build_topic_model() -> BERTopic:
     Instantiate BERTopic with explicit sub-models so each choice is visible
     and tunable.
 
-    Why these UMAP settings?
-    - n_components=5: reduce to 5 dims before clustering (BERTopic default;
-      lower than 2D viz but better for clustering quality)
-    - n_neighbors=15: controls local vs global structure balance
-    - metric='cosine': appropriate for sentence embeddings (unit vectors)
+    UMAP: n_components=5 is the BERTopic default — lower than 2D viz but better
+    for clustering quality. n_neighbors=15 controls local vs global structure
+    balance. cosine metric is appropriate for sentence embeddings (unit vectors).
 
-    Why these HDBSCAN settings?
-    - min_cluster_size=MIN_TOPIC_SIZE: topics must have at least this many
-      articles — prevents noise clusters from being labeled as topics
-    - metric='euclidean': works well in the UMAP-reduced space
-    - prediction_data=True: required to call .transform() on new documents
+    HDBSCAN: min_cluster_size prevents noise clusters from being labeled as
+    topics. euclidean metric works well in the UMAP-reduced space.
+    prediction_data=True is required to call .transform() on new documents.
     """
     from umap import UMAP
     from hdbscan import HDBSCAN

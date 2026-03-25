@@ -1,11 +1,10 @@
 """
 ingest.py — Load raw CSV files into SQLite and perform basic cleaning.
 
-Why SQLite?
-- Lets every downstream step (transform, train, evaluate) query data with SQL
-  instead of re-reading 600MB of CSVs each time.
-- Portable: the entire dataset lives in a single .db file.
-- DuckDB (used in later steps) can query SQLite files directly for fast analytics.
+SQLite lets every downstream step (transform, train, evaluate) query data with
+SQL instead of re-reading 600MB of CSVs each time. The entire dataset lives in
+a single .db file, and DuckDB (used in later steps) can query SQLite files
+directly for fast analytics.
 """
 
 import sqlite3
@@ -45,12 +44,8 @@ def load_csvs() -> pd.DataFrame:
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     """
     Apply basic cleaning rules. Each step is logged so you can see the impact.
-
-    Rules:
-    1. Drop rows where 'content' is null — no text = nothing to model.
-    2. Drop rows where 'title' is null — title is used as a secondary feature.
-    3. Drop exact duplicate rows — same article appearing in multiple files.
-    4. Reset the index so row numbers are clean and sequential.
+    Drops rows where content or title is null, removes exact duplicate rows
+    (same article appearing in multiple files), and resets the index.
     """
     start = len(df)
 
@@ -77,9 +72,8 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 def write_to_sqlite(df: pd.DataFrame) -> None:
     """
     Write the cleaned DataFrame to a SQLite database.
-
-    'if_exists="replace"' means: if we run ingest.py again, it rebuilds the
-    table from scratch rather than appending duplicates.
+    if_exists="replace" means re-running ingest.py rebuilds the table from
+    scratch rather than appending duplicates.
     """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)

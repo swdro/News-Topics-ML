@@ -1,26 +1,20 @@
 """
 evaluate.py — Detailed model evaluation and SHAP explainability.
 
-What this module does:
-1. Reloads the trained Logistic Regression and test data
-2. Computes accuracy, F1, precision, recall per topic class
-3. Generates a normalized confusion matrix
-4. Runs SHAP to explain which words drive each topic prediction
-5. Saves all outputs and logs to MLflow
+Reloads the trained Logistic Regression and test data, computes accuracy/F1/
+precision/recall per topic class, generates a normalized confusion matrix, runs
+SHAP to explain which words drive each topic prediction, then saves everything
+and logs to MLflow.
 
-Why SHAP?
-  A model that achieves 89% accuracy is only half the story. SHAP (SHapley
-  Additive exPlanations) answers: *why* did the model predict this topic?
-  Which words pushed the prediction toward topic X and away from topic Y?
-  This matters for debugging, for communicating results to stakeholders, and
-  for catching models that perform well but for the wrong reasons.
+89% accuracy is only half the story — SHAP answers why the model predicted a
+topic, which words pushed toward topic X and away from topic Y. Useful for
+debugging and communicating results to stakeholders.
 
-SHAP for linear models — efficiency note:
-  Full SHAP on 73 classes × 50k features × N samples requires GB of RAM.
-  For a linear model, SHAP values are: coef[k,j] × (x_j - mean_x_j)
-  This means model.coef_ IS the global feature importance for a linear model.
-  We use coef_ for global/per-topic importance and reserve shap.LinearExplainer
-  for focused single-article explanations using only non-zero features.
+Full SHAP on 73 classes × 50k features × N samples requires GB of RAM. For a
+linear model, SHAP values are coef[k,j] × (x_j - mean_x_j), so model.coef_ IS
+the global feature importance. We use coef_ for global/per-topic importance and
+reserve shap.LinearExplainer for focused single-article explanations using only
+non-zero features.
 """
 
 import pickle
@@ -116,11 +110,9 @@ def compute_metrics(model, X_test, y_test, le):
 
 def plot_confusion_matrix(y_test, y_pred, le, output_dir: Path):
     """
-    Plot a NORMALIZED confusion matrix.
-
-    Normalized = each row sums to 1.0 (each cell = fraction of true-class
-    articles predicted as each class). This is more readable than raw counts
-    when class sizes vary widely.
+    Plot a normalized confusion matrix (each row sums to 1.0, each cell is the
+    fraction of true-class articles predicted as each class). More readable than
+    raw counts when class sizes vary widely.
     """
     cm = confusion_matrix(y_test, y_pred, normalize="true")
     labels = [str(c) for c in le.classes_]

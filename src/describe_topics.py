@@ -1,7 +1,6 @@
 """
 describe_topics.py — Print all discovered topic labels from the current model run.
 
-Run this any time to see the current topic list:
   python -m src.describe_topics
 
 Output reflects whatever BERTopic discovered on the most recent run of

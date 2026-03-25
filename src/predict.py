@@ -1,22 +1,17 @@
 """
 predict.py — Classify new articles using the trained pipeline.
 
-This is the inference module — the end of the pipeline. It takes a raw
-article (as text or from the command line) and returns:
-  - The predicted topic ID and label
-  - The model's confidence (probability)
-  - The top words that drove the prediction (from model coefficients)
+Takes a raw article (as text or from the command line) and returns the predicted
+topic ID and label, the model's confidence (probability), and the top words that
+drove the prediction (from model coefficients).
 
 Usage:
   python -m src.predict --text "The Fed raised interest rates by 25 basis points."
   python -m src.predict --title "Fed hikes rates" --text "Full article text here..."
   python -m src.predict --file path/to/article.txt
 
-Why a separate predict module?
-  During training, we fit on a fixed dataset. At inference time, a new article
-  arrives that the model has never seen. predict.py loads the *saved* artifacts
-  (vectorizer + model) and applies the exact same transformation pipeline that
-  was used during training. This guarantees consistency.
+Loads the saved artifacts (vectorizer + model) and applies the exact same
+transformation pipeline used during training to guarantee consistency.
 """
 
 import argparse
@@ -56,11 +51,9 @@ def load_artifacts():
 def preprocess_and_vectorize(title: str, text: str, vectorizer) -> "scipy.sparse matrix":
     """
     Apply the same preprocessing + vectorization as transform.py.
-
-    IMPORTANT: We use the SAVED vectorizer — not a new one. This ensures
-    the vocabulary and IDF weights are identical to what the model was
-    trained on. Re-fitting on new data would shift all the word scores
-    and produce garbage predictions.
+    Uses the saved vectorizer — not a new one — so the vocabulary and IDF
+    weights are identical to what the model was trained on. Re-fitting on
+    new data would shift all the word scores and produce garbage predictions.
     """
     import re
     from nltk.corpus import stopwords

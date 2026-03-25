@@ -1,23 +1,16 @@
 """
 train.py — Train and compare topic classifiers, log everything to MLflow.
 
-Pipeline position:
-  BERTopic labels + TF-IDF features → [train.py] → trained classifier
+BERTopic labels + TF-IDF features → [train.py] → trained classifier
 
-Two models are trained and compared:
-  1. Logistic Regression (baseline) — fast, linear, strong on sparse text
-  2. XGBoost (challenger)           — gradient-boosted trees, non-linear
+Two models are trained and compared: Logistic Regression (baseline — fast,
+linear, strong on sparse text) and XGBoost (challenger — gradient-boosted
+trees, non-linear). No single algorithm wins on every dataset, so we train
+both, log metrics to MLflow, and pick the best one.
 
-Why compare two models?
-  No single algorithm wins on every dataset. By training both and logging
-  metrics to MLflow, we can objectively compare them and pick the best one.
-  This is standard ML engineering practice — never deploy without a baseline.
-
-Why Logistic Regression as the baseline?
-  Despite the name, LR is a classifier. It's the standard baseline for text
-  classification because it handles sparse high-dimensional features well,
-  trains in seconds, and is highly interpretable. If XGBoost can't beat LR,
-  we stick with LR (simpler is better).
+LR is the standard baseline for text classification — handles sparse
+high-dimensional features well, trains in seconds, and is interpretable.
+If XGBoost can't beat LR, we stick with LR (simpler is better).
 """
 
 import pickle
@@ -99,11 +92,10 @@ def load_data():
 
 def split_data(X, y):
     """
-    Split into train and test sets (80/20), stratified by class.
-
-    Stratified means each class's proportion is preserved in both splits.
-    Without stratification, a small class might end up entirely in train
-    or entirely in test — making evaluation unreliable.
+    Split into train and test sets (80/20), stratified by class so each
+    class's proportion is preserved in both splits. Without stratification
+    a small class might end up entirely in train or entirely in test,
+    making evaluation unreliable.
     """
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
@@ -129,14 +121,10 @@ def train_logistic_regression(X_train, X_test, y_train, y_test, le):
     """
     Train Logistic Regression and log to MLflow.
 
-    Why lbfgs solver?
-    - Handles multiclass natively (one-vs-rest not needed)
-    - Efficient on medium-sized datasets
-    - Robust convergence
-
-    Why C=5?
-    - C is inverse regularization: higher C = less penalty on large weights
-    - Tuned by convention for TF-IDF text; can be swept with cross-validation
+    lbfgs handles multiclass natively (no one-vs-rest needed), is efficient on
+    medium-sized datasets, and converges reliably. C=5 is inverse regularization
+    (higher = less penalty on large weights) — tuned by convention for TF-IDF
+    text; can be swept with cross-validation if needed.
     """
     print("\n  Training Logistic Regression...")
 
