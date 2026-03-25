@@ -36,6 +36,9 @@ ipykernel>=6.25.0
 pytest>=7.4.0
 pytest-cov>=4.1.0
 
+# NLP
+nltk>=3.8.0
+
 # Utilities
 tqdm>=4.66.0
 python-dotenv>=1.0.0

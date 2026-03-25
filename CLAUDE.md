@@ -179,3 +179,76 @@ news-topic-pipeline/
 
 ## How to Start This Session
 Say: "I'm ready to start. Let's begin with Hour 1 — setting up the repo, virtual environment, and downloading the dataset."
+
+---
+
+## What Has Been Accomplished (Phase 1 Complete)
+
+**Phase 1 is fully built, tested, documented, and CI/CD-enabled.** All 10 hours from the build plan are complete.
+
+### Pipeline Files Built
+
+| File | Status | Key Details |
+|------|--------|-------------|
+| `src/ingest.py` | ✅ Complete | Loads 3 CSVs → SQLite, drops nulls + exact duplicates → 142,036 articles |
+| `src/transform.py` | ✅ Complete | NLTK stopwords, TF-IDF (50k features, bigrams, sublinear_tf), saves matrix + vectorizer |
+| `src/topic_model.py` | ✅ Complete | BERTopic on stratified 20k sample, transforms 141k; 73 topics, 87,392 labeled articles |
+| `src/train.py` | ✅ Complete | LR (F1=0.883) vs XGBoost (F1=0.839); both logged to MLflow |
+| `src/evaluate.py` | ✅ Complete | Confusion matrix, global topic importance via coef_, SHAP per-article explanation |
+| `src/predict.py` | ✅ Complete | CLI inference: `--text`, `--title`, `--file`; shows prediction + top contributing words |
+| `src/describe_topics.py` | ✅ Complete | Utility: prints all discovered topics live from `topic_info.csv` |
+
+### Tests
+
+| File | Status | Key Details |
+|------|--------|-------------|
+| `tests/test_data_quality.py` | ✅ Complete | Pydantic ArticleRecord schema; unit + integration tests (DB, parquet, TF-IDF) |
+| `tests/test_pipeline.py` | ✅ Complete | 28 tests: preprocessing, TF-IDF vectorization, classifier behavior, trained model artifacts |
+
+All unit tests are CI-safe (no data files required). Integration tests use `pytest.mark.skipif` when data artifacts are absent.
+
+### CI/CD
+- `.github/workflows/ci.yml` runs on every push to `main`
+- Installs lightweight packages only (no bertopic/torch in CI)
+- Downloads NLTK stopwords, runs pytest with coverage
+
+### Documentation
+
+| File | Status | Key Details |
+|------|--------|-------------|
+| `README.md` | ✅ Complete | Pipeline diagram, results table, setup, running instructions, project structure |
+| `model_card.md` | ✅ Complete | Intended use, training data, evaluation metrics, limitations, Phase 2 upgrade path |
+| `docs/architecture_decisions.md` | ✅ Complete | ADRs 001–015 for all design decisions |
+| `notebooks/eda.ipynb` | ✅ Complete | 9 sections including dynamic topic discovery section (reads live from topic_info.csv) |
+| `notebooks/explain_01_data_pipeline.ipynb` | ✅ Complete | SQLite rationale, cleaning strategy, ADRs 001-003 |
+| `notebooks/explain_02_tfidf.ipynb` | ✅ Complete | Preprocessing demo, TF-IDF math, bigrams, inference demo, ADRs 004-007 |
+| `notebooks/explain_03_bertopic.ipynb` | ✅ Complete | Embeddings, UMAP, HDBSCAN, outlier tradeoff, ADRs 008-011 |
+| `notebooks/explain_04_training.ipynb` | ✅ Complete | LR vs XGBoost, C parameter, gradient boosting intuition, MLflow, ADRs 012-013 |
+| `notebooks/explain_05_evaluation.ipynb` | ✅ Complete | Precision/recall/F1, confusion matrix, SHAP = coef × (x − mean), ADRs 014-015 |
+
+### Key Results
+
+- **Dataset:** 142,036 articles after cleaning (15 publications, 2016–2017)
+- **BERTopic:** 73 topics discovered; 87,392 articles labeled (38% outlier rate)
+- **Logistic Regression:** Accuracy = 0.898, F1 (macro) = 0.883 ✅ Winner
+- **XGBoost:** Accuracy = 0.859, F1 (macro) = 0.839
+- All experiments logged in MLflow (`mlflow ui` to view)
+
+### Bugs Fixed During Build
+
+- Removed `multi_class="multinomial"` from LogisticRegression (removed in sklearn 1.7)
+- Removed `n_jobs=-1` from LogisticRegression (deprecated in sklearn 1.8)
+- XGBoost requires `brew install libomp` on Apple Silicon
+- Hardcoded political topic IDs in tests replaced with dynamic lookup from `topic_info.csv`
+- TF-IDF matrix alignment: joined on `id` field via `articles_clean.parquet` row index
+
+### Key Design Decisions (quick reference)
+
+- **Dynamic content principle:** Never hardcode model outputs (topics, metrics) in docs — always read from saved artifacts at runtime
+- **SHAP for linear models:** `model.coef_` is mathematically equivalent to mean absolute SHAP; full SHAP used only for single-article explanation to avoid memory issues
+- **BERTopic sampling:** Fit on stratified 20k sample (speed), transform full 141k corpus
+- **TF-IDF alignment:** `articles_with_topics` (87k) ≠ `articles_clean` (141k) — join on `id` field
+
+### Current State: Ready for Phase 2
+
+Phase 1 is complete and validated. Phase 2 (DistilBERT fine-tuning) can begin when confirmed. See `src/distilbert_train.py` placeholder and Phase 2 section in this file for the upgrade plan.
