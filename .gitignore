@@ -33,3 +33,7 @@ mlruns/
 dist/
 build/
 *.egg-info/
+
+# Documentation
+docs/
+notebooks/
