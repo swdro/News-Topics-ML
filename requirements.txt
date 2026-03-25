@@ -1,0 +1,41 @@
+# Data handling
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Database
+duckdb>=0.9.0
+
+# ML - core
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+
+# Topic modeling
+bertopic>=0.16.0
+sentence-transformers>=2.2.0  # BERTopic uses this for embeddings
+
+# Experiment tracking
+mlflow>=2.9.0
+
+# Data quality
+pydantic>=2.0.0
+great-expectations>=0.18.0
+
+# Explainability
+shap>=0.44.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.13.0
+plotly>=5.18.0
+
+# Notebook support
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Utilities
+tqdm>=4.66.0
+python-dotenv>=1.0.0
